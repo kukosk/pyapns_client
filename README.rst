@@ -64,3 +64,10 @@ Usage
     else:
         # everything is ok
         pass
+
+
+.. |version| image:: https://img.shields.io/pypi/v/pyapns_client.svg?style=flat-square
+    :target: https://pypi.python.org/pypi/pyapns_client/
+
+.. |license| image:: https://img.shields.io/pypi/l/pyapns_client.svg?style=flat-square
+    :target: https://pypi.python.org/pypi/pyapns_client/
