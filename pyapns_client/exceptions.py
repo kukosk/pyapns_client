@@ -125,6 +125,14 @@ class IdleTimeoutException(APNSException):
     is_apns_error = True
 
 
+class InvalidPushTypeException(APNSException):
+    """
+    The apns-push-type value is invalid.
+    """
+
+    is_programming_error = True
+
+
 class MissingDeviceTokenException(APNSException):
     """
     The device token is not specified in the request :path. Verify that the :path header contains the device token.

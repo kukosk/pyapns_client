@@ -149,7 +149,14 @@ class _Notification:
     PRIORITY_HIGH = 10
     PRIORITY_LOW = 5
 
-    def __init__(self, payload, apns_id=None, collapse_id=None, expiration=None, priority=None, topic=None):
+    PUSH_TYPE_ALERT = 'alert'
+    PUSH_TYPE_BACKGROUND = 'background'
+    PUSH_TYPE_VOIP = 'voip'
+    PUSH_TYPE_COMPLICATION = 'complication'
+    PUSH_TYPE_FILEPROVIDER = 'fileprovider'
+    PUSH_TYPE_MDM = 'mdm'
+
+    def __init__(self, payload, apns_id=None, collapse_id=None, expiration=None, priority=None, topic=None, push_type=None):
         super().__init__()
 
         # A byte array containing the JSON-encoded payload of this push notification.
@@ -186,6 +193,13 @@ class _Notification:
         # your app.
         self.topic = topic
 
+        # (Required for watchOS 6 and later; recommended for macOS, iOS, tvOS, and
+        # iPadOS) The value of this header must accurately reflect the contents of
+        # your notification’s payload. If there is a mismatch, or if the header is
+        # missing on required systems, APNs may return an error, delay the delivery
+        # of the notification, or drop it altogether.
+        self.push_type = push_type
+
     def get_headers(self):
         headers = {'Content-Type': 'application/json; charset=utf-8'}
         if self.apns_id:
@@ -198,6 +212,8 @@ class _Notification:
             headers['apns-expiration'] = self.expiration
         if self.topic:
             headers['apns-topic'] = self.topic
+        if self.push_type:
+            headers['apns-push-type'] = self.push_type
         return headers
 
     def get_json_data(self):
