@@ -18,7 +18,7 @@ Features
 Cautions
 ========
 
-- Works only with Python 3.5 and higher
+- Works only with Python 3.6 and higher
 
 
 Installation

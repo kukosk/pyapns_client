@@ -98,7 +98,7 @@ class _Payload:
                     break
 
                 alert_body = alert_body[:-1]
-                new_alert_body = alert_body + '...'
+                new_alert_body = f'{alert_body}...'
                 json_data = self._to_json(alert_body=new_alert_body)
 
         return json_data
