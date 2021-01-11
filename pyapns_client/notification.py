@@ -66,9 +66,7 @@ class SafariPayloadAlert(_PayloadAlert):
 
 class _Payload:
 
-    # There is an issue with APNS not returning any response when the payload size
-    # is exactly 2048 bytes, so we're using 2047 as a limit here.
-    MAX_PAYLOAD_SIZE = 2047
+    MAX_PAYLOAD_SIZE = 2048
 
     def __init__(self, alert=None, custom=None):
         super().__init__()
@@ -82,9 +80,6 @@ class _Payload:
             d['aps']['alert'] = self.alert.to_dict(alert_body=alert_body)
         d.update(self.custom)
         return d
-
-    def _to_json(self, alert_body=None):
-        return json.dumps(self.to_dict(alert_body=alert_body), separators=(',', ':'), sort_keys=True).encode('utf-8')
 
     def to_json(self):
         # This method automatically truncates self.alert.body if it's long.
@@ -102,6 +97,9 @@ class _Payload:
                 json_data = self._to_json(alert_body=new_alert_body)
 
         return json_data
+
+    def _to_json(self, alert_body=None):
+        return json.dumps(self.to_dict(alert_body=alert_body), separators=(',', ':'), sort_keys=True).encode('utf-8')
 
 
 class IOSPayload(_Payload):

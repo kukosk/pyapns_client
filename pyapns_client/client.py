@@ -1,6 +1,5 @@
-from hyper import HTTP20Connection
-from hyper.tls import init_context
-from hyper.http20.exceptions import StreamResetError
+import httpx
+import jwt
 import json
 import time
 
@@ -13,40 +12,26 @@ class APNSClient:
     MODE_PROD = 'prod'
     MODE_DEV = 'dev'
 
-    HOSTS = {
-        MODE_PROD: 'api.push.apple.com',
-        MODE_DEV: 'api.development.push.apple.com',
+    BASE_URLS = {
+        MODE_PROD: 'https://api.push.apple.com:443',
+        MODE_DEV: 'https://api.development.push.apple.com:443',
     }
 
-    def __init__(self, mode, client_cert, password=None, proxy_host=None, proxy_port=None):
+    AUTH_TOKEN_LIFETIME = 45 * 60  # seconds
+    AUTH_TOKEN_ENCRYPTION = 'ES256'
+
+    def __init__(self, mode, root_cert_path, auth_key_path, auth_key_id, team_id):
         super().__init__()
 
-        self._host = self.HOSTS[mode]
-        self._init_context = init_context(cert=client_cert, cert_password=password)
-        self._proxy_host = proxy_host
-        self._proxy_port = proxy_port
+        self._base_url = self.BASE_URLS[mode]
+        self._root_cert_path = root_cert_path
+        self._auth_key = self._get_auth_key(auth_key_path)
+        self._auth_key_id = auth_key_id
+        self._team_id = team_id
 
-        self._connection_storage = None
-
-    @property
-    def _connection(self):
-        if self._connection_storage is None:
-            logger.debug('Creating a new HTTP2 connection instance.')
-            self._connection_storage = HTTP20Connection(
-                host=self._host,
-                port=443,
-                secure=True,
-                ssl_context=self._init_context,
-                proxy_host=self._proxy_host,
-                proxy_port=self._proxy_port,
-            )
-
-        return self._connection_storage
-
-    @_connection.setter
-    def _connection(self, value):
-        logger.debug('Discarding the existing HTTP2 connection instance.')
-        self._connection_storage = value
+        self._auth_token_time = None
+        self._auth_token_storage = None
+        self._client_storage = None
 
     def push(self, notification, device_token):
         headers = notification.get_headers()
@@ -64,7 +49,7 @@ class APNSClient:
             except exceptions.APNSException as e:
                 exc = e
                 if e.is_apns_error:
-                    self._connection = None
+                    self._reset_client()
                 else:
                     break
         duration = round((time.perf_counter() - start_time) * 1000)
@@ -75,33 +60,30 @@ class APNSClient:
 
         logger.debug(f'Sent: {duration}ms.')
 
+    def close(self):
+        self._reset_client()
+        self._reset_auth_token()
+        logger.debug('Closed.')
+
     def _push(self, headers, json_data, device_token):
         try:
             response = self._send_request(headers=headers, json_data=json_data, device_token=device_token)
-        except StreamResetError as e:
+        except httpx.RequestError as e:
             logger.debug(f'Failed to receive a response: {type(e).__name__}.')
             raise exceptions.APNSConnectionException(status_code=None, apns_id=None)
-        
-        status = 'success' if response.status == 200 else 'failure'
-        logger.debug(f'Response received: {response.status} ({status}).')
 
-        if response.status != 200:
-            apns_ids = response.headers.get('apns-id')
-            apns_id = apns_ids[0] if apns_ids else None
+        status = 'success' if response.status_code == 200 else 'failure'
+        logger.debug(f'Response received: {response.status_code} ({status}).')
 
-            body = response.read()
-            apns_data = json.loads(body.decode('utf-8'))
+        if response.status_code != 200:
+            apns_id = response.headers.get('apns-id')
+            apns_data = json.loads(response.text)
             reason = apns_data['reason']
 
             logger.debug(f'Response reason: {reason}.')
 
-            try:
-                exception_class_name = f'{reason}Exception'
-                exception_class = getattr(exceptions, exception_class_name)
-            except AttributeError:
-                raise NotImplementedError(f'Reason not implemented: {reason}')
-
-            exception_kwargs = {'status_code': response.status, 'apns_id': apns_id}
+            exception_class = self._get_exception_class(reason)
+            exception_kwargs = {'status_code': response.status_code, 'apns_id': apns_id}
             if issubclass(exception_class, exceptions.APNSTimestampException):
                 exception_kwargs['timestamp'] = apns_data['timestamp']
 
@@ -109,6 +91,59 @@ class APNSClient:
 
     def _send_request(self, headers, json_data, device_token):
         url = f'/3/device/{device_token}'
-        stream_id = self._connection.request(method='POST', url=url, body=json_data, headers=headers)
-        response = self._connection.get_response(stream_id=stream_id)
-        return response
+        return self._client.post(url, data=json_data, headers=headers)
+
+    def _authenticate_request(self, request):
+        request.headers['authorization'] = f'bearer {self._auth_token}'
+        return request
+
+    @property
+    def _auth_token(self):
+        if self._auth_token_storage is None or self._is_auth_token_expired:
+            logger.debug('Creating a new authentication token.')
+            self._auth_token_time = time.time()
+            token_dict = {'iss': self._team_id, 'iat': self._auth_token_time}
+            headers = {'alg': self.AUTH_TOKEN_ENCRYPTION, 'kid': self._auth_key_id}
+            auth_token = jwt.encode(token_dict, self._auth_key, algorithm=self.AUTH_TOKEN_ENCRYPTION, headers=headers)
+            self._auth_token_storage = auth_token
+
+        return self._auth_token_storage
+
+    @property
+    def _client(self):
+        if self._client_storage is None:
+            logger.debug('Creating a new client instance.')
+            limits = httpx.Limits(max_connections=1, max_keepalive_connections=0)
+            self._client_storage = httpx.Client(auth=self._authenticate_request, verify=self._root_cert_path, http2=True, timeout=10.0, limits=limits, base_url=self._base_url)
+
+        return self._client_storage
+
+    @property
+    def _is_auth_token_expired(self):
+        if self._auth_token_time is None:
+            return True
+        return time.time() >= self._auth_token_time + self.AUTH_TOKEN_LIFETIME
+
+    def _reset_auth_token(self):
+        logger.debug('Resetting the existing authentication token.')
+        self._auth_token_time = None
+        self._auth_token_storage = None
+
+    def _reset_client(self):
+        logger.debug('Resetting the existing client instance.')
+        if self._client_storage is not None:
+            self._client_storage.close()
+        self._client_storage = None
+
+    @staticmethod
+    def _get_auth_key(auth_key_path):
+        with open(auth_key_path) as f:
+            return f.read()
+
+    @staticmethod
+    def _get_exception_class(reason):
+        exception_class_name = f'{reason}Exception'
+        try:
+            return getattr(exceptions, exception_class_name)
+        except AttributeError:
+            raise NotImplementedError(f'Reason not implemented: {reason}')

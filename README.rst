@@ -10,9 +10,11 @@ Simple, flexible and fast Apple Push Notifications on iOS, OSX and Safari using 
 Features
 ========
 
-- Uses the new Apple APNs HTTP/2 protocol
+- Uses the new Apple APNs HTTP/2 protocol with persistent connections
+- Uses token-based authentication
+- Uses the httpx HTTP client library
 - Supports the new iOS 10 features such as Collapse IDs, Subtitles and Mutable Notifications
-- Supports persistent connections to APNS
+- Makes the integration and error handling really simple with auto-retry on APNs errors
 
 
 Cautions
@@ -39,31 +41,31 @@ Usage
     from pyapns_client import APNSClient, IOSPayloadAlert, IOSPayload, IOSNotification, APNSException, UnregisteredException
 
 
-    cli = APNSClient(mode=APNSClient.MODE_DEV, client_cert='/your/path.pem')
-    alert = IOSPayloadAlert(body='body!', title='title!')
-    payload = IOSPayload(alert=alert)
-    notification = IOSNotification(payload=payload, priority=IOSNotification.PRIORITY_LOW)
+    client = APNSClient(mode=APNSClient.MODE_DEV, root_cert_path='/your/path.pem', auth_key_path='/your/path.p8', auth_key_id='AUTHKEY123', team_id='TEAMID1234')
 
     try:
-        cli.push(notification=notification, device_token='your_token')
-    except APNSException as e:
-        if e.is_device_error:
-            if isinstance(e, UnregisteredException):
-                # device is unregistered, compare timestamp (e.timestamp_datetime) and remove from db
-                pass
+        device_tokens = ['your_token1', 'your_token2']
+        alert = IOSPayloadAlert(body='Some message.', title='Title')
+        payload = IOSPayload(alert=alert)
+        notification = IOSNotification(payload=payload, topic='domain.organization.app')
+
+        for device_token in device_tokens:
+            try:
+                client.push(notification=notification, device_token=device_token)
+            except APNSException as e:
+                if e.is_device_error:
+                    if isinstance(e, UnregisteredException):
+                        print('device is unregistered, compare timestamp (e.timestamp_datetime) and remove from db')
+                    else:
+                        print('flag the device as potentially invalid and remove from db after a few tries')
+                elif e.is_apns_error:
+                    print('try again later')
+                elif e.is_programming_error:
+                    print('check your code and try again later')
             else:
-                # flag the device as potentially invalid
-                pass
-        elif e.is_apns_error:
-            # try again later
-            pass
-        elif e.is_programming_error:
-            # check your code
-            # try again later
-            pass
-    else:
-        # everything is ok
-        pass
+                print('everything is ok')
+    finally:
+        client.close()
 
 
 .. |version| image:: https://img.shields.io/pypi/v/pyapns_client.svg?style=flat-square

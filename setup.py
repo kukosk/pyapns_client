@@ -56,7 +56,9 @@ setup(
         'clean': CleanCommand,
     },
     install_requires=[
-        'hyper',
+        'httpx[http2]',
+        'PyJWT',
+        'cryptography',
         'pytz',
     ],
 )
