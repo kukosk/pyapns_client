@@ -4,7 +4,10 @@ from .client import (
 
 from .exceptions import (
     APNSException,
-    APNSTimestampException,
+    APNSDeviceException,
+    APNSServerException,
+    APNSProgrammingException,
+    APNSConnectionException,
     BadCollapseIdException,
     BadDeviceTokenException,
     BadExpirationDateException,

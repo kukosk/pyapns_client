@@ -38,7 +38,7 @@ Usage
 
 .. code-block:: python
 
-    from pyapns_client import APNSClient, IOSPayloadAlert, IOSPayload, IOSNotification, APNSException, UnregisteredException
+    from pyapns_client import APNSClient, IOSPayloadAlert, IOSPayload, IOSNotification, APNSDeviceException, APNSServerException, APNSProgrammingException, UnregisteredException
 
 
     client = APNSClient(mode=APNSClient.MODE_DEV, root_cert_path='/your/path.pem', auth_key_path='/your/path.p8', auth_key_id='AUTHKEY123', team_id='TEAMID1234')
@@ -52,16 +52,14 @@ Usage
         for device_token in device_tokens:
             try:
                 client.push(notification=notification, device_token=device_token)
-            except APNSException as e:
-                if e.is_device_error:
-                    if isinstance(e, UnregisteredException):
-                        print('device is unregistered, compare timestamp (e.timestamp_datetime) and remove from db')
-                    else:
-                        print('flag the device as potentially invalid and remove from db after a few tries')
-                elif e.is_apns_error:
-                    print('try again later')
-                elif e.is_programming_error:
-                    print('check your code and try again later')
+            except UnregisteredException as e:
+                print(f'device is unregistered, compare timestamp {e.timestamp_datetime} and remove from db')
+            except APNSDeviceException:
+                print('flag the device as potentially invalid and remove from db after a few tries')
+            except APNSServerException:
+                print('try again later')
+            except APNSProgrammingException:
+                print('check your code and try again later')
             else:
                 print('everything is ok')
     finally:

@@ -41,17 +41,17 @@ class APNSClient:
 
         exc = None
         start_time = time.perf_counter()
-        for i in range(3):
+        for _ in range(3):
             try:
                 self._push(headers=headers, json_data=json_data, device_token=device_token)
                 exc = None
                 break
+            except exceptions.APNSServerException as e:
+                exc = e
+                self._reset_client()
             except exceptions.APNSException as e:
                 exc = e
-                if e.is_apns_error:
-                    self._reset_client()
-                else:
-                    break
+                break
         duration = round((time.perf_counter() - start_time) * 1000)
 
         if exc is not None:
@@ -70,7 +70,7 @@ class APNSClient:
             response = self._send_request(headers=headers, json_data=json_data, device_token=device_token)
         except httpx.RequestError as e:
             logger.debug(f'Failed to receive a response: {type(e).__name__}.')
-            raise exceptions.APNSConnectionException(status_code=None, apns_id=None)
+            raise exceptions.APNSConnectionException()
 
         status = 'success' if response.status_code == 200 else 'failure'
         logger.debug(f'Response received: {response.status_code} ({status}).')
@@ -84,7 +84,7 @@ class APNSClient:
 
             exception_class = self._get_exception_class(reason)
             exception_kwargs = {'status_code': response.status_code, 'apns_id': apns_id}
-            if issubclass(exception_class, exceptions.APNSTimestampException):
+            if issubclass(exception_class, exceptions.UnregisteredException):
                 exception_kwargs['timestamp'] = apns_data['timestamp']
 
             raise exception_class(**exception_kwargs)
