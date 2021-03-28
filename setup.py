@@ -57,7 +57,7 @@ setup(
     },
     install_requires=[
         'httpx[http2]',
-        'PyJWT',
+        'PyJWT>=2',
         'cryptography',
         'pytz',
     ],
