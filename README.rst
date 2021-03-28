@@ -43,6 +43,7 @@ Usage
 
     client = APNSClient(mode=APNSClient.MODE_DEV, root_cert_path='/your/path.pem', auth_key_path='/your/path.p8', auth_key_id='AUTHKEY123', team_id='TEAMID1234')
     # you can pass `None` to `root_cert_path` if you have the cert included in your trust store
+    # note httpx uses 'SSL_CERT_FILE' and 'SSL_CERT_DIR' from `os.environ` to find your trust store
 
     try:
         device_tokens = ['your_token1', 'your_token2']
