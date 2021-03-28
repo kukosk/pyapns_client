@@ -20,8 +20,11 @@ class APNSClient:
     AUTH_TOKEN_LIFETIME = 45 * 60  # seconds
     AUTH_TOKEN_ENCRYPTION = 'ES256'
 
-    def __init__(self, mode, root_cert_path=True, auth_key_path, auth_key_id, team_id):
+    def __init__(self, mode, root_cert_path, auth_key_path, auth_key_id, team_id):
         super().__init__()
+
+        if root_cert_path is None:
+            root_cert_path = True
 
         self._base_url = self.BASE_URLS[mode]
         self._root_cert_path = root_cert_path
