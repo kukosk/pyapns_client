@@ -11,7 +11,7 @@ Features
 ========
 
 - Uses the new Apple APNs HTTP/2 protocol with persistent connections
-- Uses token-based authentication
+- Uses token-based authentication (no need to renew your certificates anymore)
 - Uses the httpx HTTP client library
 - Supports the new iOS 10 features such as Collapse IDs, Subtitles and Mutable Notifications
 - Makes the integration and error handling really simple with auto-retry on APNs errors
@@ -41,12 +41,14 @@ Usage
     from pyapns_client import APNSClient, IOSPayloadAlert, IOSPayload, IOSNotification, APNSDeviceException, APNSServerException, APNSProgrammingException, UnregisteredException
 
 
-    client = APNSClient(mode=APNSClient.MODE_DEV, root_cert_path='/your/path.pem', auth_key_path='/your/path.p8', auth_key_id='AUTHKEY123', team_id='TEAMID1234')
+    client = APNSClient(mode=APNSClient.MODE_DEV, root_cert_path='/path/to/root_cert.pem', auth_key_path='/path/to/auth_key.p8', auth_key_id='AUTHKEY123', team_id='TEAMID1234')
+    # `root_cert_path` is for the AAACertificateServices root cert (https://apple.co/3mZ5rB6)
+    # with token-based auth you don't need to create / renew your APNS SSL certificates anymore
     # you can pass `None` to `root_cert_path` if you have the cert included in your trust store
-    # note httpx uses 'SSL_CERT_FILE' and 'SSL_CERT_DIR' from `os.environ` to find your trust store
+    # httpx uses 'SSL_CERT_FILE' and 'SSL_CERT_DIR' from `os.environ` to find your trust store
 
     try:
-        device_tokens = ['your_token1', 'your_token2']
+        device_tokens = ['device_token_1', 'device_token_2']
         alert = IOSPayloadAlert(body='Some message.', title='Title')
         payload = IOSPayload(alert=alert)
         notification = IOSNotification(payload=payload, topic='domain.organization.app')
