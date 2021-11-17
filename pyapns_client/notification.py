@@ -137,8 +137,7 @@ class SafariPayload(_Payload):
 
     def to_dict(self, alert_body=None):
         d = super().to_dict(alert_body=alert_body)
-        if self.url_args:
-            d['aps']['url-args'] = self.url_args
+        d['aps']['url-args'] = self.url_args
         return d
 
 
