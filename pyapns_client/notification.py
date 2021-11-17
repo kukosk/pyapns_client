@@ -153,13 +153,18 @@ class _Notification:
     PUSH_TYPE_FILEPROVIDER = 'fileprovider'
     PUSH_TYPE_MDM = 'mdm'
 
-    def __init__(self, payload, apns_id=None, collapse_id=None, expiration=None, priority=None, topic=None, push_type=None):
+    def __init__(self, payload, topic, apns_id=None, collapse_id=None, expiration=None, priority=None, push_type=None):
         super().__init__()
 
         # A byte array containing the JSON-encoded payload of this push notification.
         # Refer to "The Remote Notification Payload" section in the Apple Local and
         # Remote Notification Programming Guide for more info.
         self.payload = payload
+
+        # The topic for the notification. If you’re using token-based authentication
+        # with APNs, you must include this header with the correct bundle ID and
+        # suffix combination.
+        self.topic = topic
 
         # An optional canonical UUID that identifies the notification. The canonical
         # form is 32 lowercase hexadecimal digits, displayed in five groups separated
@@ -186,10 +191,6 @@ class _Notification:
         # priority to 10.
         self.priority = priority
 
-        # The topic of the remote notification, which is typically the bundle ID for
-        # your app.
-        self.topic = topic
-
         # (Required for watchOS 6 and later; recommended for macOS, iOS, tvOS, and
         # iPadOS) The value of this header must accurately reflect the contents of
         # your notification’s payload. If there is a mismatch, or if the header is
@@ -199,6 +200,8 @@ class _Notification:
 
     def get_headers(self):
         headers = {'Content-Type': 'application/json; charset=utf-8'}
+        if self.topic:
+            headers['apns-topic'] = self.topic
         if self.apns_id:
             headers['apns-id'] = self.apns_id
         if self.collapse_id:
@@ -207,8 +210,6 @@ class _Notification:
             headers['apns-priority'] = self.priority
         if self.expiration:
             headers['apns-expiration'] = self.expiration
-        if self.topic:
-            headers['apns-topic'] = self.topic
         if self.push_type:
             headers['apns-push-type'] = self.push_type
         return headers

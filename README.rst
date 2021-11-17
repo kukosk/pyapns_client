@@ -49,7 +49,7 @@ Usage
 
     try:
         device_tokens = ['device_token_1', 'device_token_2']
-        alert = IOSPayloadAlert(body='Some message.', title='Title')
+        alert = IOSPayloadAlert(title='Title', body='Some message.')
         payload = IOSPayload(alert=alert)
         notification = IOSNotification(payload=payload, topic='domain.organization.app')
 
