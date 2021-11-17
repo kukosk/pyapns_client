@@ -23,30 +23,39 @@ class _PayloadAlert:
 
 class IOSPayloadAlert(_PayloadAlert):
 
-    def __init__(self, title=None, body=None, action_loc_key=None, loc_key=None, loc_args=None, launch_image=None, title_loc_key=None, title_loc_args=None):
+    def __init__(self, title=None, subtitle=None, body=None, title_loc_key=None, title_loc_args=None, subtitle_loc_key=None, subtitle_loc_args=None, loc_key=None, loc_args=None, action_loc_key=None, launch_image=None):
         super().__init__(title=title, body=body)
 
-        self.action_loc_key = action_loc_key
-        self.loc_key = loc_key
-        self.loc_args = loc_args
-        self.launch_image = launch_image
+        self.subtitle = subtitle
         self.title_loc_key = title_loc_key
         self.title_loc_args = title_loc_args
+        self.subtitle_loc_key = subtitle_loc_key
+        self.subtitle_loc_args = subtitle_loc_args
+        self.loc_key = loc_key
+        self.loc_args = loc_args
+        self.action_loc_key = action_loc_key
+        self.launch_image = launch_image
 
     def to_dict(self, alert_body=None):
         d = super().to_dict(alert_body=alert_body)
-        if self.action_loc_key:
-            d['action-loc-key'] = self.action_loc_key
-        if self.loc_key:
-            d['loc-key'] = self.loc_key
-        if self.loc_args:
-            d['loc-args'] = self.loc_args
-        if self.launch_image:
-            d['launch-image'] = self.launch_image
+        if self.subtitle:
+            d['subtitle'] = self.subtitle
         if self.title_loc_key:
             d['title-loc-key'] = self.title_loc_key
         if self.title_loc_args:
             d['title-loc-args'] = self.title_loc_args
+        if self.subtitle_loc_key:
+            d['subtitle-loc-key'] = self.subtitle_loc_key
+        if self.subtitle_loc_args:
+            d['subtitle-loc-args'] = self.subtitle_loc_args
+        if self.loc_key:
+            d['loc-key'] = self.loc_key
+        if self.loc_args:
+            d['loc-args'] = self.loc_args
+        if self.action_loc_key:
+            d['action-loc-key'] = self.action_loc_key
+        if self.launch_image:
+            d['launch-image'] = self.launch_image
         return d
 
 
