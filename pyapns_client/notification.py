@@ -113,7 +113,7 @@ class _Payload:
 
 class IOSPayload(_Payload):
 
-    def __init__(self, alert=None, badge=None, sound=None, category=None, custom=None, content_available=False, mutable_content=False, thread_id=None):
+    def __init__(self, alert=None, badge=None, sound=None, category=None, custom=None, content_available=False, mutable_content=False, thread_id=None, target_content_id=None, interruption_level=None, relevance_score=None):
         super().__init__(alert=alert, custom=custom)
 
         self.badge = badge
@@ -122,6 +122,9 @@ class IOSPayload(_Payload):
         self.content_available = content_available
         self.mutable_content = mutable_content
         self.thread_id = thread_id
+        self.target_content_id = target_content_id
+        self.interruption_level = interruption_level
+        self.relevance_score = relevance_score
 
     def to_dict(self, alert_body=None):
         d = super().to_dict(alert_body=alert_body)
@@ -137,6 +140,12 @@ class IOSPayload(_Payload):
             d['aps']['mutable-content'] = 1
         if self.thread_id:
             d['aps']['thread-id'] = self.thread_id
+        if self.target_content_id:
+            d['aps']['target-content-id'] = self.target_content_id
+        if self.interruption_level:
+            d['aps']['interruption-level'] = self.interruption_level
+        if self.relevance_score is not None:
+            d['aps']['relevance-score'] = float(self.relevance_score)
         return d
 
 
