@@ -113,7 +113,7 @@ class _Payload:
 
 class IOSPayload(_Payload):
 
-    def __init__(self, alert=None, badge=None, sound=None, category=None, custom=None, content_available=False, mutable_content=False):
+    def __init__(self, alert=None, badge=None, sound=None, category=None, custom=None, content_available=False, mutable_content=False, thread_id=None):
         super().__init__(alert=alert, custom=custom)
 
         self.badge = badge
@@ -121,6 +121,7 @@ class IOSPayload(_Payload):
         self.category = category
         self.content_available = content_available
         self.mutable_content = mutable_content
+        self.thread_id = thread_id
 
     def to_dict(self, alert_body=None):
         d = super().to_dict(alert_body=alert_body)
@@ -134,6 +135,8 @@ class IOSPayload(_Payload):
             d['aps']['content-available'] = 1
         if self.mutable_content:
             d['aps']['mutable-content'] = 1
+        if self.thread_id:
+            d['aps']['thread-id'] = self.thread_id
         return d
 
 
