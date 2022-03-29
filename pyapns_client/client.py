@@ -40,7 +40,7 @@ class APNSClient:
         headers = notification.get_headers()
         json_data = notification.get_json_data()
 
-        logger.debug(f'Sending notification: {len(json_data)} bytes {json_data} to: "{device_token}".')
+        logger.debug('Sending notification: %s bytes %s to: "%s".', len(json_data), json_data, device_token)
 
         exc = None
         start_time = time.perf_counter()
@@ -58,10 +58,10 @@ class APNSClient:
         duration = round((time.perf_counter() - start_time) * 1000)
 
         if exc is not None:
-            logger.debug(f'Failed to send the notification: {type(exc).__name__} {duration}ms.')
+            logger.debug('Failed to send the notification: %s %sms.', type(exc).__name__, duration)
             raise exc
 
-        logger.debug(f'Sent: {duration}ms.')
+        logger.debug('Sent: %sms.', duration)
 
     def close(self):
         self._reset_client()
@@ -72,18 +72,18 @@ class APNSClient:
         try:
             response = self._send_request(headers=headers, json_data=json_data, device_token=device_token)
         except httpx.RequestError as e:
-            logger.debug(f'Failed to receive a response: {type(e).__name__}.')
+            logger.debug('Failed to receive a response: %s.', type(e).__name__)
             raise exceptions.APNSConnectionException()
 
         status = 'success' if response.status_code == 200 else 'failure'
-        logger.debug(f'Response received: {response.status_code} ({status}).')
+        logger.debug('Response received: %s (%s).', response.status_code, status)
 
         if response.status_code != 200:
             apns_id = response.headers.get('apns-id')
             apns_data = json.loads(response.text)
             reason = apns_data['reason']
 
-            logger.debug(f'Response reason: {reason}.')
+            logger.debug('Response reason: %s.', reason)
 
             exception_class = self._get_exception_class(reason)
             exception_kwargs = {'status_code': response.status_code, 'apns_id': apns_id}
