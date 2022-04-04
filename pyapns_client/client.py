@@ -3,6 +3,9 @@ import jwt
 import json
 import time
 
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+
 from . import exceptions
 from .logging import logger
 
@@ -20,7 +23,7 @@ class APNSClient:
     AUTH_TOKEN_LIFETIME = 45 * 60  # seconds
     AUTH_TOKEN_ENCRYPTION = 'ES256'
 
-    def __init__(self, mode, root_cert_path, auth_key_path, auth_key_id, team_id):
+    def __init__(self, mode, root_cert_path, auth_key_path, auth_key_id, team_id, auth_key_password=None):
         super().__init__()
 
         if root_cert_path is None:
@@ -31,6 +34,10 @@ class APNSClient:
         self._auth_key = self._get_auth_key(auth_key_path)
         self._auth_key_id = auth_key_id
         self._team_id = team_id
+        if auth_key_password:
+            self._auth_key = serialization.load_pem_private_key(
+                self._auth_key.encode(), password=auth_key_password.encode(), backend=default_backend()
+            )
 
         self._auth_token_time = None
         self._auth_token_storage = None
