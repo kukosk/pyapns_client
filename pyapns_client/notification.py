@@ -1,4 +1,5 @@
 import json
+from math import floor
 
 
 class _PayloadAlert:
@@ -98,10 +99,12 @@ class _Payload:
             alert_body = self.alert.body
 
             while alert_body:
-                if len(json_data) <= self.MAX_PAYLOAD_SIZE:
+                extra_bytes = len(json_data) - self.MAX_PAYLOAD_SIZE
+                if extra_bytes <= 0:
                     break
 
-                alert_body = alert_body[:-1]
+                chars_to_strip = max(1, floor(extra_bytes / 10))
+                alert_body = alert_body[:-chars_to_strip]
                 new_alert_body = f'{alert_body}...'
                 json_data = self._to_json(alert_body=new_alert_body)
 
