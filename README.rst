@@ -41,18 +41,22 @@ Usage
     from pyapns_client import APNSClient, IOSPayloadAlert, IOSPayload, IOSNotification, APNSDeviceException, APNSServerException, APNSProgrammingException, UnregisteredException
 
 
-    client = APNSClient(mode=APNSClient.MODE_DEV, root_cert_path='/path/to/root_cert.pem', auth_key_path='/path/to/auth_key.p8', auth_key_id='AUTHKEY123', team_id='TEAMID1234')
+    device_tokens = ['device_token_1', 'device_token_2']
+    alert = IOSPayloadAlert(title='Title', subtitle='Subtitle', body='Some message.')
+    payload = IOSPayload(alert=alert)
+    notification = IOSNotification(payload=payload, topic='domain.organization.app')
+
     # `root_cert_path` is for the AAACertificateServices root cert (https://apple.co/3mZ5rB6)
     # with token-based auth you don't need to create / renew your APNS SSL certificates anymore
     # you can pass `None` to `root_cert_path` if you have the cert included in your trust store
     # httpx uses 'SSL_CERT_FILE' and 'SSL_CERT_DIR' from `os.environ` to find your trust store
-
-    try:
-        device_tokens = ['device_token_1', 'device_token_2']
-        alert = IOSPayloadAlert(title='Title', subtitle='Subtitle', body='Some message.')
-        payload = IOSPayload(alert=alert)
-        notification = IOSNotification(payload=payload, topic='domain.organization.app')
-
+    with APNSClient(
+        mode=APNSClient.MODE_DEV, 
+        root_cert_path='/path/to/root_cert.pem', 
+        auth_key_path='/path/to/auth_key.p8', 
+        auth_key_id='AUTHKEY123', 
+        team_id='TEAMID1234'
+    ) as client:
         for device_token in device_tokens:
             try:
                 client.push(notification=notification, device_token=device_token)
@@ -66,8 +70,6 @@ Usage
                 print('check your code and try again later')
             else:
                 print('everything is ok')
-    finally:
-        client.close()
 
 
 .. |version| image:: https://img.shields.io/pypi/v/pyapns_client.svg?style=flat-square

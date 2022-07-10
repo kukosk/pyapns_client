@@ -73,6 +73,12 @@ class APNSClient:
         self._auth_token_storage = None
         self._client_storage = None
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def push(self, notification, device_token):
         headers = notification.get_headers()
         json_data = notification.get_json_data()
