@@ -142,9 +142,9 @@ class AsyncAPNSClient:
 
             raise exception_class(**exception_kwargs)
 
-    def _send_request(self, headers, json_data, device_token):
+    async def _send_request(self, headers, json_data, device_token):
         url = f"/3/device/{device_token}"
-        return self._client.post(url, data=json_data, headers=headers)
+        return await self._client.post(url, data=json_data, headers=headers)
 
     def _authenticate_request(self, request):
         request.headers["authorization"] = f"bearer {self._auth_token}"
