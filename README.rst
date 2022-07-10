@@ -11,7 +11,7 @@ Features
 ========
 
 - Uses the new Apple APNs HTTP/2 protocol with persistent connections
-- Uses token-based authentication (no need to renew your certificates anymore)
+- Supports token-based authentication (no need to renew your certificates anymore) and certificate-based authentication
 - Uses the httpx HTTP client library
 - Supports the new iOS 10 features such as Collapse IDs, Subtitles and Mutable Notifications
 - Makes the integration and error handling really simple with auto-retry on APNs errors
