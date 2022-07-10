@@ -1,5 +1,6 @@
 import json
 from math import floor
+from typing import Any, Dict
 
 
 class _PayloadAlert:
@@ -164,6 +165,15 @@ class SafariPayload(_Payload):
         d['aps']['url-args'] = self.url_args
         return d
 
+class PasskitPayload(_Payload):
+    """
+    Payload for PassKit notifications.
+    """
+    def __init__(self):
+        super().__init__()
+
+    def to_dict(self, alert_body=None) -> Dict[str, Any]:
+        return {}
 
 class _Notification:
 
