@@ -2,6 +2,10 @@ from .client import (
     APNSClient,
 )
 
+from .async_client import (
+    AsyncAPNSClient,
+)
+
 from .exceptions import (
     APNSException,
     APNSDeviceException,
