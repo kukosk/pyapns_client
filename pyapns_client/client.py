@@ -1,3 +1,4 @@
+from typing import Union
 import httpx
 import jwt
 import json
@@ -20,7 +21,33 @@ class APNSClient:
     AUTH_TOKEN_LIFETIME = 45 * 60  # seconds
     AUTH_TOKEN_ENCRYPTION = 'ES256'
 
-    def __init__(self, mode, root_cert_path, auth_key_path, auth_key_id, team_id):
+    def __init__(
+        self, 
+        mode: str, 
+        *,
+        root_cert_path: Union[None, str, bool] = None, 
+        auth_key_path: Union[None, str] = None, 
+        auth_key_id: Union[None, str] = None, 
+        team_id: Union[None, str] = None,
+
+        client_cert_path: Union[None, str] = None,
+        client_cert_passphrase: Union[None, str] = None,
+    ):
+        """
+        Initialize the APNSClient instance. Clients supports two types of authentication:
+        - JWT authentication (auth_key_path, auth_key_id, team_id)
+        - certificate authentication (client_cert_path, client_cert_passphrase)
+
+        :param mode: The mode of the client. Either 'prod' or 'dev'.
+
+        :param root_cert_path: The path to the root certificate.
+        :param auth_key_path: The path to the authentication key.
+        :param auth_key_id: The ID of the authentication key.
+        :param team_id: The ID of the team.
+
+        :param client_cert_path: The path to the client certificate.
+        :param client_cert_passphrase: The passphrase of the client certificate.
+        """
         super().__init__()
 
         if root_cert_path is None:
@@ -28,9 +55,19 @@ class APNSClient:
 
         self._base_url = self.BASE_URLS[mode]
         self._root_cert_path = root_cert_path
-        self._auth_key = self._get_auth_key(auth_key_path)
+        self._auth_key = self._get_auth_key(auth_key_path) if auth_key_path else None
         self._auth_key_id = auth_key_id
         self._team_id = team_id
+
+        self._client_cert_path = client_cert_path
+        self._client_cert_passphrase = client_cert_passphrase
+
+        if self._auth_key and self._auth_key_id and self._team_id:
+            self._auth_type = 'jwt'
+        elif self._client_cert_path and self._client_cert_passphrase:
+            self._auth_type = 'cert'
+        else:
+            raise ValueError('Either the auth key or the client cert must be provided.')
 
         self._auth_token_time = None
         self._auth_token_storage = None
@@ -107,7 +144,7 @@ class APNSClient:
             self._auth_token_time = time.time()
             token_dict = {'iss': self._team_id, 'iat': self._auth_token_time}
             headers = {'alg': self.AUTH_TOKEN_ENCRYPTION, 'kid': self._auth_key_id}
-            auth_token = jwt.encode(token_dict, self._auth_key, algorithm=self.AUTH_TOKEN_ENCRYPTION, headers=headers)
+            auth_token = jwt.encode(token_dict, str(self._auth_key), algorithm=self.AUTH_TOKEN_ENCRYPTION, headers=headers)
             self._auth_token_storage = auth_token
 
         return self._auth_token_storage
@@ -117,7 +154,15 @@ class APNSClient:
         if self._client_storage is None:
             logger.debug('Creating a new client instance.')
             limits = httpx.Limits(max_connections=1, max_keepalive_connections=0)
-            self._client_storage = httpx.Client(auth=self._authenticate_request, verify=self._root_cert_path, http2=True, timeout=10.0, limits=limits, base_url=self._base_url)
+            self._client_storage = httpx.Client(
+                auth=self._authenticate_request if self._auth_type == 'jwt' else None,
+                cert=(str(self._client_cert_path), self._client_cert_path, self._client_cert_passphrase) if self._auth_type == 'cert' else None, 
+                verify=self._root_cert_path, 
+                http2=True, 
+                timeout=10.0, 
+                limits=limits, 
+                base_url=self._base_url
+            )
 
         return self._client_storage
 
