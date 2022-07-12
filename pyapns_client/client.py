@@ -12,11 +12,11 @@ class APNSClient(BaseAPNSClient):
     def __init__(
         self,
         mode: str,
-        *,
         root_cert_path: Union[None, str, bool] = None,
         auth_key_path: Union[None, str] = None,
         auth_key_id: Union[None, str] = None,
         team_id: Union[None, str] = None,
+        *,
         client_cert_path: Union[None, str] = None,
         client_cert_passphrase: Union[None, str] = None,
     ):
