@@ -93,22 +93,7 @@ class APNSClient(BaseAPNSClient):
     def _client(self):
         if self._client_storage is None:
             logger.debug("Creating a new client instance.")
-            limits = httpx.Limits(max_connections=1, max_keepalive_connections=0)
-            self._client_storage = httpx.Client(
-                auth=self._authenticate_request if self._auth_type == "jwt" else None,
-                cert=(
-                    str(self._client_cert_path),
-                    self._client_cert_path,
-                    self._client_cert_passphrase,
-                )
-                if self._auth_type == "cert"
-                else None,
-                verify=self._root_cert_path,
-                http2=True,
-                timeout=10.0,
-                limits=limits,
-                base_url=self._base_url,
-            )
+            self._client_storage = httpx.Client(**self._http_options)
 
         return self._client_storage
 

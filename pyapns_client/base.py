@@ -116,6 +116,25 @@ class BaseAPNSClient:
         return self._auth_token_storage
 
     @property
+    def _http_options(self):
+        limits = httpx.Limits(max_connections=1, max_keepalive_connections=0)
+        return {
+            "auth": self._authenticate_request if self._auth_type == "jwt" else None,
+            "cert": (
+                str(self._client_cert_path),
+                self._client_cert_path,
+                self._client_cert_passphrase,
+            )
+            if self._auth_type == "cert"
+            else None,
+            "verify": self._root_cert_path,
+            "http2": True,
+            "timeout": 10.0,
+            "limits": limits,
+            "base_url": self._base_url,
+        }
+
+    @property
     def _is_auth_token_expired(self):
         if self._auth_token_time is None:
             return True
