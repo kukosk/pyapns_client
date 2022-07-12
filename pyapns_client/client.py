@@ -17,6 +17,7 @@ class APNSClient(BaseAPNSClient):
         auth_key_id: Union[None, str] = None,
         team_id: Union[None, str] = None,
         *,
+        auth_key_password: Union[None, str] = None,
         client_cert_path: Union[None, str] = None,
         client_cert_passphrase: Union[None, str] = None,
     ):
@@ -24,6 +25,7 @@ class APNSClient(BaseAPNSClient):
             mode,
             root_cert_path=root_cert_path,
             auth_key_path=auth_key_path,
+            auth_key_password=auth_key_password,
             auth_key_id=auth_key_id,
             team_id=team_id,
             client_cert_path=client_cert_path,

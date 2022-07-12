@@ -3,6 +3,8 @@ from typing import Union
 
 import httpx
 import jwt
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 
 from . import exceptions
 from .logging import logger
@@ -26,6 +28,7 @@ class BaseAPNSClient:
         *,
         root_cert_path: Union[None, str, bool] = None,
         auth_key_path: Union[None, str] = None,
+        auth_key_password: Union[None, str] = None,
         auth_key_id: Union[None, str] = None,
         team_id: Union[None, str] = None,
         client_cert_path: Union[None, str] = None,
@@ -40,6 +43,7 @@ class BaseAPNSClient:
 
         :param root_cert_path: The path to the root certificate.
         :param auth_key_path: The path to the authentication key.
+        :param auth_key_password: The password of the authentication key.
         :param auth_key_id: The ID of the authentication key.
         :param team_id: The ID of the team.
 
@@ -54,6 +58,12 @@ class BaseAPNSClient:
         self._base_url = self.BASE_URLS[mode]
         self._root_cert_path = root_cert_path
         self._auth_key = self._get_auth_key(auth_key_path) if auth_key_path else None
+        if self._auth_key and auth_key_password:
+            self._auth_key = serialization.load_pem_private_key(
+                self._auth_key.encode(),
+                password=auth_key_password.encode(),
+                backend=default_backend(),
+            )
         self._auth_key_id = auth_key_id
         self._team_id = team_id
 
