@@ -4,6 +4,7 @@ from typing import Union
 import httpx
 
 from . import exceptions
+from .auth import Auth
 from .base import BaseAPNSClient
 from .logging import logger
 
@@ -12,25 +13,11 @@ class AsyncAPNSClient(BaseAPNSClient):
     def __init__(
         self,
         mode: str,
+        authentificator: Auth,
         *,
         root_cert_path: Union[None, str, bool] = None,
-        auth_key_path: Union[None, str] = None,
-        auth_key_password: Union[None, str] = None,
-        auth_key_id: Union[None, str] = None,
-        team_id: Union[None, str] = None,
-        client_cert_path: Union[None, str] = None,
-        client_cert_passphrase: Union[None, str] = None,
     ):
-        super().__init__(
-            mode,
-            root_cert_path=root_cert_path,
-            auth_key_path=auth_key_path,
-            auth_key_password=auth_key_password,
-            auth_key_id=auth_key_id,
-            team_id=team_id,
-            client_cert_path=client_cert_path,
-            client_cert_passphrase=client_cert_passphrase,
-        )
+        super().__init__(mode, authentificator, root_cert_path=root_cert_path)
 
     async def __aenter__(self):
         return self
@@ -73,7 +60,6 @@ class AsyncAPNSClient(BaseAPNSClient):
 
     async def close(self):
         await self._reset_client()
-        self._reset_auth_token()
         logger.debug("Closed.")
 
     async def _push(self, headers, json_data, device_token):

@@ -1,6 +1,6 @@
-*************
-pyapns_client
-*************
+**************
+pyapns_client3
+**************
 
 |version| |license|
 
@@ -42,7 +42,7 @@ Sync
 
 .. code-block:: python
 
-    from pyapns_client import APNSClient, IOSPayloadAlert, IOSPayload, IOSNotification, APNSDeviceException, APNSServerException, APNSProgrammingException, UnregisteredException
+    from pyapns_client import APNSClient, TokenBasedAuth, IOSPayloadAlert, IOSPayload, IOSNotification, APNSDeviceException, APNSServerException, APNSProgrammingException, UnregisteredException
 
 
     device_tokens = ['device_token_1', 'device_token_2']
@@ -56,10 +56,12 @@ Sync
     # httpx uses 'SSL_CERT_FILE' and 'SSL_CERT_DIR' from `os.environ` to find your trust store
     with APNSClient(
         mode=APNSClient.MODE_DEV, 
+        authentificator=TokenBasedAuth(
+            auth_key_path='/path/to/auth_key.p8', 
+            auth_key_id='AUTHKEY123', 
+            team_id='TEAMID1234'
+        ),
         root_cert_path='/path/to/root_cert.pem', 
-        auth_key_path='/path/to/auth_key.p8', 
-        auth_key_id='AUTHKEY123', 
-        team_id='TEAMID1234'
     ) as client:
         for device_token in device_tokens:
             try:
@@ -80,7 +82,7 @@ Async
 
 .. code-block:: python
 
-    from pyapns_client import AsyncAPNSClient, IOSPayloadAlert, IOSPayload, IOSNotification, APNSDeviceException, APNSServerException, APNSProgrammingException, UnregisteredException
+    from pyapns_client import AsyncAPNSClient, TokenBasedAuth, IOSPayloadAlert, IOSPayload, IOSNotification, APNSDeviceException, APNSServerException, APNSProgrammingException, UnregisteredException
 
 
     device_tokens = ['device_token_1', 'device_token_2']
@@ -94,10 +96,12 @@ Async
     # httpx uses 'SSL_CERT_FILE' and 'SSL_CERT_DIR' from `os.environ` to find your trust store
     async with AsyncAPNSClient(
         mode=APNSClient.MODE_DEV, 
+        authentificator=TokenBasedAuth(
+            auth_key_path='/path/to/auth_key.p8', 
+            auth_key_id='AUTHKEY123', 
+            team_id='TEAMID1234'
+        ),
         root_cert_path='/path/to/root_cert.pem', 
-        auth_key_path='/path/to/auth_key.p8', 
-        auth_key_id='AUTHKEY123', 
-        team_id='TEAMID1234'
     ) as client:
         for device_token in device_tokens:
             try:
@@ -114,7 +118,7 @@ Async
                 print('everything is ok')
 
 .. |version| image:: https://img.shields.io/pypi/v/pyapns_client.svg?style=flat-square
-    :target: https://pypi.python.org/pypi/pyapns_client/
+    :target: https://pypi.python.org/pypi/pyapns_client3/
 
 .. |license| image:: https://img.shields.io/pypi/l/pyapns_client.svg?style=flat-square
-    :target: https://pypi.python.org/pypi/pyapns_client/
+    :target: https://pypi.python.org/pypi/pyapns_client3/

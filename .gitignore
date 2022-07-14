@@ -46,3 +46,8 @@ docs/_build/
 
 # Other
 .DS_Store
+
+# Virtual environments
+venv/
+main.py
+.python-version

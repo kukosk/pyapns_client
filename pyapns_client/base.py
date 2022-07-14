@@ -1,12 +1,9 @@
-import time
 from typing import Union
 
 import httpx
-import jwt
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
 
 from . import exceptions
+from .auth import Auth
 from .logging import logger
 
 
@@ -19,36 +16,21 @@ class BaseAPNSClient:
         MODE_DEV: "https://api.development.push.apple.com:443",
     }
 
-    AUTH_TOKEN_LIFETIME = 45 * 60  # seconds
-    AUTH_TOKEN_ENCRYPTION = "ES256"
-
     def __init__(
         self,
         mode: str,
+        authentificator: Auth,
         *,
         root_cert_path: Union[None, str, bool] = None,
-        auth_key_path: Union[None, str] = None,
-        auth_key_password: Union[None, str] = None,
-        auth_key_id: Union[None, str] = None,
-        team_id: Union[None, str] = None,
-        client_cert_path: Union[None, str] = None,
-        client_cert_passphrase: Union[None, str] = None,
     ):
         """
-        Initialize the APNSClient instance. Clients supports two types of authentication:
-        - JWT authentication (auth_key_path, auth_key_id, team_id)
-        - certificate authentication (client_cert_path, client_cert_passphrase)
+        Initialize the APNSClient instance with provided mode and authentificator.
 
         :param mode: The mode of the client. Either 'prod' or 'dev'.
+        :param authentificator: The authentificator object.
 
         :param root_cert_path: The path to the root certificate.
-        :param auth_key_path: The path to the authentication key.
-        :param auth_key_password: The password of the authentication key.
-        :param auth_key_id: The ID of the authentication key.
-        :param team_id: The ID of the team.
 
-        :param client_cert_path: The path to the client certificate.
-        :param client_cert_passphrase: The passphrase of the client certificate.
         """
         super().__init__()
 
@@ -57,33 +39,9 @@ class BaseAPNSClient:
 
         self._base_url = self.BASE_URLS[mode]
         self._root_cert_path = root_cert_path
-        self._auth_key = self._get_auth_key(auth_key_path) if auth_key_path else None
-        if self._auth_key and auth_key_password:
-            self._auth_key = serialization.load_pem_private_key(
-                self._auth_key.encode(),
-                password=auth_key_password.encode(),
-                backend=default_backend(),
-            )
-        self._auth_key_id = auth_key_id
-        self._team_id = team_id
 
-        self._client_cert_path = client_cert_path
-        self._client_cert_passphrase = client_cert_passphrase
-
-        if self._auth_key and self._auth_key_id and self._team_id:
-            self._auth_type = "jwt"
-        elif self._client_cert_path and self._client_cert_passphrase:
-            self._auth_type = "cert"
-        else:
-            raise ValueError("Either the auth key or the client cert must be provided.")
-
-        self._auth_token_time = None
-        self._auth_token_storage = None
+        self._auth = authentificator
         self._client_storage = None
-
-    def _authenticate_request(self, request):
-        request.headers["authorization"] = f"bearer {self._auth_token}"
-        return request
 
     def _parse_response(self, response: httpx.Response) -> None:
         status = "success" if response.status_code == 200 else "failure"
@@ -103,57 +61,17 @@ class BaseAPNSClient:
 
             raise exception_class(**exception_kwargs)
 
-    def _reset_auth_token(self):
-        logger.debug("Resetting the existing authentication token.")
-        self._auth_token_time = None
-        self._auth_token_storage = None
-
-    @property
-    def _auth_token(self):
-        if self._auth_token_storage is None or self._is_auth_token_expired:
-            logger.debug("Creating a new authentication token.")
-            self._auth_token_time = time.time()
-            token_dict = {"iss": self._team_id, "iat": self._auth_token_time}
-            headers = {"alg": self.AUTH_TOKEN_ENCRYPTION, "kid": self._auth_key_id}
-            auth_token = jwt.encode(
-                token_dict,
-                str(self._auth_key),
-                algorithm=self.AUTH_TOKEN_ENCRYPTION,
-                headers=headers,
-            )
-            self._auth_token_storage = auth_token
-
-        return self._auth_token_storage
-
     @property
     def _http_options(self):
         limits = httpx.Limits(max_connections=1, max_keepalive_connections=0)
         return {
-            "auth": self._authenticate_request if self._auth_type == "jwt" else None,
-            "cert": (
-                str(self._client_cert_path),
-                self._client_cert_path,
-                self._client_cert_passphrase,
-            )
-            if self._auth_type == "cert"
-            else None,
+            **self._auth(),
             "verify": self._root_cert_path,
             "http2": True,
             "timeout": 10.0,
             "limits": limits,
             "base_url": self._base_url,
         }
-
-    @property
-    def _is_auth_token_expired(self):
-        if self._auth_token_time is None:
-            return True
-        return time.time() >= self._auth_token_time + self.AUTH_TOKEN_LIFETIME
-
-    @staticmethod
-    def _get_auth_key(auth_key_path):
-        with open(auth_key_path) as f:
-            return f.read()
 
     @staticmethod
     def _get_exception_class(reason):

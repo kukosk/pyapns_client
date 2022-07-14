@@ -56,6 +56,11 @@ from .notification import (
     PasskitPayload,
 )
 
+from .auth import (
+    TokenBasedAuth,
+    CertificateBasedAuth,
+)
+
 __all__ = [
     "APNSClient",
     "APNSConnectionException",
@@ -73,6 +78,7 @@ __all__ = [
     "BadPathException",
     "BadPriorityException",
     "BadTopicException",
+    "CertificateBasedAuth",
     "DeviceTokenNotForTopicException",
     "DuplicateHeadersException",
     "ExpiredProviderTokenException",
@@ -96,6 +102,7 @@ __all__ = [
     "SafariPayloadAlert",
     "ServiceUnavailableException",
     "ShutdownException",
+    "TokenBasedAuth",
     "TooManyProviderTokenUpdatesException",
     "TooManyRequestsException",
     "TopicDisallowedException",
