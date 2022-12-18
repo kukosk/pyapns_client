@@ -27,11 +27,11 @@ CHANGELOG = open(os.path.join(os.path.dirname(__file__), "CHANGELOG.rst")).read(
 
 setup(
     name="pyapns_client3",
-    version="3.0.1",
+    version="3.0.2",
     packages=["pyapns_client"],
     include_package_data=True,
     license="MIT License",
-    description="Simple, flexible and fast Apple Push Notifications on iOS, OSX and Safari using the HTTP/2 Push provider API.",
+    description="Simple, flexible and fast Apple Push Notifications on iOS, OSX and Safari using the HTTP/2 Push provider API with async support.",
     long_description="\n\n".join([README, CHANGELOG]),
     keywords="apns apple ios osx safari push notifications",
     url="https://github.com/capcom6/pyapns_client",

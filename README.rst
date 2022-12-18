@@ -31,7 +31,7 @@ Install using pip:
 
 .. code-block:: bash
 
-    pip install pyapns_client
+    pip install pyapns_client3
 
 
 Usage
@@ -117,8 +117,8 @@ Async
             else:
                 print('everything is ok')
 
-.. |version| image:: https://img.shields.io/pypi/v/pyapns_client.svg?style=flat-square
+.. |version| image:: https://img.shields.io/pypi/v/pyapns_client3.svg?style=flat-square
     :target: https://pypi.python.org/pypi/pyapns_client3/
 
-.. |license| image:: https://img.shields.io/pypi/l/pyapns_client.svg?style=flat-square
+.. |license| image:: https://img.shields.io/pypi/l/pyapns_client3.svg?style=flat-square
     :target: https://pypi.python.org/pypi/pyapns_client3/
