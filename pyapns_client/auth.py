@@ -5,8 +5,7 @@
 
 
 import time
-from typing import Any, Union
-from httpx import Request
+from typing import Any, Dict, Union
 
 import jwt
 from cryptography.hazmat.backends import default_backend
@@ -19,7 +18,7 @@ class Auth:
     def __init__(self) -> None:
         raise NotImplementedError
 
-    def __call__(self) -> dict[str, Any]:
+    def __call__(self) -> Dict[str, Any]:
         raise NotImplementedError
 
 
@@ -48,7 +47,7 @@ class TokenBasedAuth(Auth):
         self._auth_token_time = None
         self._auth_token_storage = None
 
-    def __call__(self) -> dict[str, Any]:
+    def __call__(self) -> Dict[str, Any]:
         return {
             "auth": self._authenticate_request,
         }
@@ -95,7 +94,7 @@ class CertificateBasedAuth(Auth):
         self._client_cert_path = client_cert_path
         self._client_cert_passphrase = client_cert_passphrase
 
-    def __call__(self) -> dict[str, Any]:
+    def __call__(self) -> Dict[str, Any]:
         return {
             "cert": (
                 self._client_cert_path,
