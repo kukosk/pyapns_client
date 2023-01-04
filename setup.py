@@ -27,7 +27,7 @@ CHANGELOG = open(os.path.join(os.path.dirname(__file__), "CHANGELOG.rst")).read(
 
 setup(
     name="pyapns_client3",
-    version="3.0.2",
+    version="3.0.3",
     packages=["pyapns_client"],
     include_package_data=True,
     license="MIT License",

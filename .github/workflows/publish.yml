@@ -30,7 +30,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install build
       - name: Build package
-        run: python -m build
+        run: |
+          sed -i '' -e 's|version=".*"|version="'${GITHUB_REF}'"|g' ./setup.py
+          python -m build
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
