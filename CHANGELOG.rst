@@ -1,5 +1,12 @@
 3.0
 ===
+3.0.5
+-----
+
+Fixed
+^^^^^
+- have `auth.py` use the `Dict` type hint from the typing module by @tinycogio
+
 3.0.0
 -----
 
