@@ -1,3 +1,8 @@
 {
-    "licenser.license": "MIT"
+    "licenser.license": "MIT",
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }

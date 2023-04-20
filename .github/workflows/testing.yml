@@ -27,4 +27,4 @@ jobs:
         run: flake8 pyapns_client
 
       - name: Test with pytest
-        run: pytest pyapns_client
+        run: pytest tests

@@ -23,7 +23,6 @@ class Auth:
 
 
 class TokenBasedAuth(Auth):
-
     AUTH_TOKEN_LIFETIME = 45 * 60  # seconds
     AUTH_TOKEN_ENCRYPTION = "ES256"
 
@@ -63,7 +62,19 @@ class TokenBasedAuth(Auth):
         return time.time() >= self._auth_token_time + self.AUTH_TOKEN_LIFETIME
 
     @staticmethod
-    def _get_auth_key(auth_key_path):
+    def _get_auth_key(auth_key_path) -> str:
+        """
+        Returns the authentication key as a string from either a file path or a file object.
+
+        Parameters:
+            auth_key_path (str or file object): The path to the file containing the authentication key,
+                or a file object containing the authentication key.
+
+        Returns:
+            str: The authentication key as a string.
+        """
+        if hasattr(auth_key_path, "read"):
+            return auth_key_path.read()
         with open(auth_key_path) as f:
             return f.read()
 
