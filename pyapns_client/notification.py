@@ -4,7 +4,6 @@ from typing import Any, Dict
 
 
 class _PayloadAlert:
-
     def __init__(self, title=None, body=None):
         super().__init__()
 
@@ -17,15 +16,27 @@ class _PayloadAlert:
 
         d = {}
         if self.title:
-            d['title'] = self.title
+            d["title"] = self.title
         if alert_body:
-            d['body'] = alert_body
+            d["body"] = alert_body
         return d
 
 
 class IOSPayloadAlert(_PayloadAlert):
-
-    def __init__(self, title=None, subtitle=None, body=None, title_loc_key=None, title_loc_args=None, subtitle_loc_key=None, subtitle_loc_args=None, loc_key=None, loc_args=None, action_loc_key=None, launch_image=None):
+    def __init__(
+        self,
+        title=None,
+        subtitle=None,
+        body=None,
+        title_loc_key=None,
+        title_loc_args=None,
+        subtitle_loc_key=None,
+        subtitle_loc_args=None,
+        loc_key=None,
+        loc_args=None,
+        action_loc_key=None,
+        launch_image=None,
+    ):
         super().__init__(title=title, body=body)
 
         self.subtitle = subtitle
@@ -41,28 +52,27 @@ class IOSPayloadAlert(_PayloadAlert):
     def to_dict(self, alert_body=None):
         d = super().to_dict(alert_body=alert_body)
         if self.subtitle:
-            d['subtitle'] = self.subtitle
+            d["subtitle"] = self.subtitle
         if self.title_loc_key:
-            d['title-loc-key'] = self.title_loc_key
+            d["title-loc-key"] = self.title_loc_key
         if self.title_loc_args:
-            d['title-loc-args'] = self.title_loc_args
+            d["title-loc-args"] = self.title_loc_args
         if self.subtitle_loc_key:
-            d['subtitle-loc-key'] = self.subtitle_loc_key
+            d["subtitle-loc-key"] = self.subtitle_loc_key
         if self.subtitle_loc_args:
-            d['subtitle-loc-args'] = self.subtitle_loc_args
+            d["subtitle-loc-args"] = self.subtitle_loc_args
         if self.loc_key:
-            d['loc-key'] = self.loc_key
+            d["loc-key"] = self.loc_key
         if self.loc_args:
-            d['loc-args'] = self.loc_args
+            d["loc-args"] = self.loc_args
         if self.action_loc_key:
-            d['action-loc-key'] = self.action_loc_key
+            d["action-loc-key"] = self.action_loc_key
         if self.launch_image:
-            d['launch-image'] = self.launch_image
+            d["launch-image"] = self.launch_image
         return d
 
 
 class SafariPayloadAlert(_PayloadAlert):
-
     def __init__(self, title=None, body=None, action=None):
         super().__init__(title=title, body=body)
 
@@ -71,12 +81,11 @@ class SafariPayloadAlert(_PayloadAlert):
     def to_dict(self, alert_body=None):
         d = super().to_dict(alert_body=alert_body)
         if self.action:
-            d['action'] = self.action
+            d["action"] = self.action
         return d
 
 
 class _Payload:
-
     MAX_PAYLOAD_SIZE = 2048
 
     def __init__(self, alert=None, custom=None):
@@ -86,9 +95,9 @@ class _Payload:
         self.custom = custom or {}
 
     def to_dict(self, alert_body=None):
-        d = {'aps': {}}
+        d = {"aps": {}}
         if self.alert:
-            d['aps']['alert'] = self.alert.to_dict(alert_body=alert_body)
+            d["aps"]["alert"] = self.alert.to_dict(alert_body=alert_body)
         d.update(self.custom)
         return d
 
@@ -106,18 +115,32 @@ class _Payload:
 
                 chars_to_strip = max(1, floor(extra_bytes / 10))
                 alert_body = alert_body[:-chars_to_strip]
-                new_alert_body = f'{alert_body}...'
+                new_alert_body = f"{alert_body}..."
                 json_data = self._to_json(alert_body=new_alert_body)
 
         return json_data
 
     def _to_json(self, alert_body=None):
-        return json.dumps(self.to_dict(alert_body=alert_body), separators=(',', ':'), sort_keys=True).encode('utf-8')
+        return json.dumps(
+            self.to_dict(alert_body=alert_body), separators=(",", ":"), sort_keys=True
+        ).encode("utf-8")
 
 
 class IOSPayload(_Payload):
-
-    def __init__(self, alert=None, badge=None, sound=None, category=None, custom=None, content_available=False, mutable_content=False, thread_id=None, target_content_id=None, interruption_level=None, relevance_score=None):
+    def __init__(
+        self,
+        alert=None,
+        badge=None,
+        sound=None,
+        category=None,
+        custom=None,
+        content_available=False,
+        mutable_content=False,
+        thread_id=None,
+        target_content_id=None,
+        interruption_level=None,
+        relevance_score=None,
+    ):
         super().__init__(alert=alert, custom=custom)
 
         self.badge = badge
@@ -133,28 +156,27 @@ class IOSPayload(_Payload):
     def to_dict(self, alert_body=None):
         d = super().to_dict(alert_body=alert_body)
         if self.badge is not None:
-            d['aps']['badge'] = int(self.badge)
+            d["aps"]["badge"] = int(self.badge)
         if self.sound:
-            d['aps']['sound'] = self.sound
+            d["aps"]["sound"] = self.sound
         if self.category:
-            d['aps']['category'] = self.category
+            d["aps"]["category"] = self.category
         if self.content_available:
-            d['aps']['content-available'] = 1
+            d["aps"]["content-available"] = 1
         if self.mutable_content:
-            d['aps']['mutable-content'] = 1
+            d["aps"]["mutable-content"] = 1
         if self.thread_id:
-            d['aps']['thread-id'] = self.thread_id
+            d["aps"]["thread-id"] = self.thread_id
         if self.target_content_id:
-            d['aps']['target-content-id'] = self.target_content_id
+            d["aps"]["target-content-id"] = self.target_content_id
         if self.interruption_level:
-            d['aps']['interruption-level'] = self.interruption_level
+            d["aps"]["interruption-level"] = self.interruption_level
         if self.relevance_score is not None:
-            d['aps']['relevance-score'] = float(self.relevance_score)
+            d["aps"]["relevance-score"] = float(self.relevance_score)
         return d
 
 
 class SafariPayload(_Payload):
-
     def __init__(self, alert=None, url_args=None, custom=None):
         super().__init__(alert=alert, custom=custom)
 
@@ -162,32 +184,43 @@ class SafariPayload(_Payload):
 
     def to_dict(self, alert_body=None):
         d = super().to_dict(alert_body=alert_body)
-        d['aps']['url-args'] = self.url_args
+        d["aps"]["url-args"] = self.url_args
         return d
+
 
 class PasskitPayload(_Payload):
     """
     Payload for PassKit notifications.
     """
+
     def __init__(self):
         super().__init__()
 
     def to_dict(self, alert_body=None) -> Dict[str, Any]:
         return {}
 
-class _Notification:
 
+class _Notification:
     PRIORITY_HIGH = 10
     PRIORITY_LOW = 5
 
-    PUSH_TYPE_ALERT = 'alert'
-    PUSH_TYPE_BACKGROUND = 'background'
-    PUSH_TYPE_VOIP = 'voip'
-    PUSH_TYPE_COMPLICATION = 'complication'
-    PUSH_TYPE_FILEPROVIDER = 'fileprovider'
-    PUSH_TYPE_MDM = 'mdm'
+    PUSH_TYPE_ALERT = "alert"
+    PUSH_TYPE_BACKGROUND = "background"
+    PUSH_TYPE_VOIP = "voip"
+    PUSH_TYPE_COMPLICATION = "complication"
+    PUSH_TYPE_FILEPROVIDER = "fileprovider"
+    PUSH_TYPE_MDM = "mdm"
 
-    def __init__(self, payload, topic, apns_id=None, collapse_id=None, expiration=None, priority=None, push_type=None):
+    def __init__(
+        self,
+        payload,
+        topic,
+        apns_id=None,
+        collapse_id=None,
+        expiration=None,
+        priority=None,
+        push_type=None,
+    ):
         super().__init__()
 
         # A byte array containing the JSON-encoded payload of this push notification.
@@ -233,19 +266,19 @@ class _Notification:
         self.push_type = push_type
 
     def get_headers(self):
-        headers = {'Content-Type': 'application/json; charset=utf-8'}
+        headers = {"Content-Type": "application/json; charset=utf-8"}
         if self.topic:
-            headers['apns-topic'] = self.topic
+            headers["apns-topic"] = self.topic
         if self.apns_id:
-            headers['apns-id'] = self.apns_id
+            headers["apns-id"] = self.apns_id
         if self.collapse_id:
-            headers['apns-collapse-id'] = self.collapse_id
+            headers["apns-collapse-id"] = self.collapse_id
         if self.priority:
-            headers['apns-priority'] = self.priority
+            headers["apns-priority"] = self.priority
         if self.expiration:
-            headers['apns-expiration'] = self.expiration
+            headers["apns-expiration"] = self.expiration
         if self.push_type:
-            headers['apns-push-type'] = self.push_type
+            headers["apns-push-type"] = self.push_type
         return headers
 
     def get_json_data(self):
@@ -253,10 +286,8 @@ class _Notification:
 
 
 class IOSNotification(_Notification):
-
     pass
 
 
 class SafariNotification(_Notification):
-
     pass
